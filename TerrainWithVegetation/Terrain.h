@@ -22,10 +22,11 @@ namespace TerrainWithVegetation
 	private:
 		// Generate data for the terrain.
 		// Parameters: vertices - vertex coordinates;
-		//             indices - vertex indices.
+		//             indices - vertex indices;
+		//             normals - vertex normals.
 		// Returns: true on success, false otherwise.
 		// Throws: std::bad_alloc
-		bool generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices);
+		bool generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, std::vector<GLfloat>& normals);
 
 		// Initialize texture data for the terrain.
 		// Parameters: vertices - vertex coordinates.

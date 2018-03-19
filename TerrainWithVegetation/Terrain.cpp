@@ -64,8 +64,9 @@ bool Terrain::initialize()
 
 	std::vector<GLfloat> vertices;
 	std::vector<GLuint> indices;
+	std::vector<GLfloat> normals;
 
-	if (!generateTerrainData(vertices, indices))
+	if (!generateTerrainData(vertices, indices, normals))
 	{
 		return false;
 	}
@@ -98,7 +99,7 @@ bool Terrain::initialize()
 	return true;
 }
 
-bool Terrain::generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices)
+bool Terrain::generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, std::vector<GLfloat>& normals)
 {
 	// Width and height of the heightmap.
 	const int Width  = m_heightmap.getWidth();
@@ -184,7 +185,48 @@ bool Terrain::generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GL
 		}
 	}
 
-	// TODO: calculate normal values
+	// Calculate normal values.
+
+	const size_t IndexCount = indices.size();
+
+	// Except the first two indices, each subsequent index will create a triangle, and we need one normal per triangle.
+	normals.resize(IndexCount - 2);
+
+	for (int i = 2; i < IndexCount; ++i)    // skip the first two indices
+	{
+		if (0 == i % 2)
+		{
+			// For even indices N: cross product of vectors
+			// (N to N - 2, N to N - 1)
+
+			// TODO: add some temp data structures to easier pick coordinates?
+
+			//glm::vec3 v1 = glm::vec3(N - 2) - glm::vec3(N);
+			//glm::vec3 v2 = glm::vec3(N - 1) - glm::vec3(N);
+
+			// Coordinates of point with an index M:
+			// vertices[M * 3], vertices[M * 3 + 1], vertices[M * 3 + 2]
+
+			glm::vec3 currPoint(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]);
+
+			glm::vec3 currPointMinusOne(vertices[(i - 1) * 3], vertices[(i - 1) * 3 + 1], vertices[(i - 1) * 3 + 2]);
+
+			glm::vec3 currPointMinusTwo(vertices[(i - 2) * 3], vertices[(i - 2) * 3 + 1], vertices[(i - 2) * 3 + 2]);
+
+			glm::vec3 v1 = currPointMinusTwo - currPoint;
+
+			glm::vec3 v2 = currPointMinusOne - currPoint;
+
+			glm::vec3 normal = glm::cross(v1, v2);
+		} 
+		else
+		{
+			// For odd indices N: cross product of vectors
+			// (N to N - 1, N to N - 2)
+
+			;
+		}
+	}
 
 	return true;
 }
