@@ -26,7 +26,7 @@ namespace TerrainWithVegetation
 		//             normals - vertex normals.
 		// Returns: true on success, false otherwise.
 		// Throws: std::bad_alloc
-		bool generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, std::vector<GLfloat>& normals);
+		bool generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, std::vector<glm::vec3>& normals);
 
 		// Initialize texture data for the terrain.
 		// Parameters: vertices - vertex coordinates.
@@ -44,10 +44,7 @@ namespace TerrainWithVegetation
 		GLuint m_index;          // index buffer
 		GLsizei m_indexCount;    // number of indices
 
-		// TODO: use normal buffer
-#if 0
-		GLuint m_color;    // buffer for height-based vertex colors
-#endif
+		GLuint m_normal;    // normal buffer
 
 		// Minimum and maximum scaled height of the terrain.
 		GLfloat m_minHeightScaled;
