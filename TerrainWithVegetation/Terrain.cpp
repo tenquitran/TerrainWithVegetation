@@ -72,7 +72,7 @@ bool Terrain::initialize()
 	glGenVertexArrays(1, &m_vao);
 	glBindVertexArray(m_vao);
 
-	std::vector<GLfloat> vertices;
+	std::vector<glm::vec3> vertices;
 	std::vector<GLuint> indices;
 	std::vector<glm::vec3> normals;
 
@@ -113,12 +113,35 @@ bool Terrain::initialize()
 
 	generateTextureData(vertices);
 
+	GLuint program = m_spProgram->getProgram();
+
+	glUseProgram(program);
+
+#if 1
+	// Set light properties.
+
+	glm::vec3 ambient(0.15f, 0.15f, 0.15f);
+	glm::vec3 diffuse(0.6f, 0.6f, 0.6f);
+	glm::vec3 specular(0.25f, 0.25f, 0.25f);
+	glm::vec3 lightPos(273.0f, 70.0f, 46.0f);
+	//glm::vec3 lightPos(531.0f, 70.0f, 21.0f);
+	//x=531.000000 y=37.4500008 z=21.0
+	//273.000000 y=29.0499992 z=46.0
+
+	glUniform3fv(3, 1, glm::value_ptr(ambient));
+	glUniform3fv(4, 1, glm::value_ptr(diffuse));
+	glUniform3fv(5, 1, glm::value_ptr(specular));
+	glUniform3fv(6, 1, glm::value_ptr(lightPos));
+#endif
+
+	glUseProgram(0);
+
 	glBindVertexArray(0);
 
 	return true;
 }
 
-bool Terrain::generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, std::vector<glm::vec3>& normals)
+bool Terrain::generateTerrainData(std::vector<glm::vec3>& vertices, std::vector<GLuint>& indices, std::vector<glm::vec3>& normals)
 {
 	// Width and height of the heightmap.
 	const int Width  = m_heightmap.getWidth();
@@ -128,8 +151,7 @@ bool Terrain::generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GL
 
 	// Generate vertex coordinates.
 
-	// Vertex coordinates (3 per vertex).
-	vertices.reserve(Width * Height * 3);
+	vertices.reserve(Width * Height);
 
 	for (int z = 0; z < Height; ++z)
 	{
@@ -137,9 +159,7 @@ bool Terrain::generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GL
 		{
 			const GLfloat ScaledHeight = m_heightmap.getScaledHeightAtPoint(x, z);
 
-			vertices.push_back((GLfloat)x);
-			vertices.push_back(ScaledHeight);
-			vertices.push_back((GLfloat)z);
+			vertices.push_back(glm::vec3((GLfloat)x, ScaledHeight, (GLfloat)z));
 
 			if (ScaledHeight < m_minHeightScaled)
 			{
@@ -202,148 +222,142 @@ bool Terrain::generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GL
 		}
 	}
 
-	// Calculate per-triangle normals.
+#if 0    // TODO: temp
 
-	std::vector<glm::vec3> normalsPerTriangle;
-	normalsPerTriangle.reserve(rawIndex - 2);
-
-	// Except the first two indices, each subsequent index will create a triangle, and we need one normal per triangle.
+	// Calculate normals.
 	// NOTE: we should use the number of "raw" indices, as the index buffer contains duplicates.
-	//normals.reserve(rawIndex - 2);
-	//normals.reserve((rawIndex - 2) * 3);
-
-	for (size_t i = 2; i < rawIndex; ++i)    // skip the first two indices
-	{
-		// Coordinates of point with an index M:
-		// vertices[M * 3], vertices[M * 3 + 1], vertices[M * 3 + 2]
-
-		glm::vec3 currPoint(vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]);
-
-		glm::vec3 currPointMinusOne(vertices[(i - 1) * 3], vertices[(i - 1) * 3 + 1], vertices[(i - 1) * 3 + 2]);
-
-		glm::vec3 currPointMinusTwo(vertices[(i - 2) * 3], vertices[(i - 2) * 3 + 1], vertices[(i - 2) * 3 + 2]);
-
-		glm::vec3 normal;
-
-		if (0 == i % 2)
-		{
-			// For even indices N: cross product of vectors
-			// (N to N - 2) and (N to N - 1)
-
-			//glm::vec3 v1 = glm::vec3(N - 2) - glm::vec3(N);
-			//glm::vec3 v2 = glm::vec3(N - 1) - glm::vec3(N);
-
-			glm::vec3 v1 = currPointMinusTwo - currPoint;
-			glm::vec3 v2 = currPointMinusOne - currPoint;
-
-			normal = glm::cross(v1, v2);
-		} 
-		else
-		{
-			// For odd indices N: cross product of vectors
-			// (N to N - 1) and (N to N - 2)
-
-			glm::vec3 v1 = currPointMinusOne - currPoint;
-			glm::vec3 v2 = currPointMinusTwo - currPoint;
-
-			normal = glm::cross(v1, v2);
-		}
-
-#if 1
-		normalsPerTriangle.push_back(normal);
-#else
-		normalsPerTriangle.push_back(normal.x);
-		normalsPerTriangle.push_back(normal.y);
-		normalsPerTriangle.push_back(normal.z);
-#endif
-	}
-
-	// Calculate per-vertex normals.
-
 	normals.reserve(rawIndex);
 
-	// A formula for the last index in the row is (Height * R - 1), where R >= 2.
-	// However, we are skipping R=2 (see it below) because this vertex belongs to the top row.
-	size_t rowNumber = 3;
-	size_t lastIndexInRow = Height * rowNumber - 1;
-
-	size_t lastIndexOfFirstRow = Height * 2 - 1;
-
-	size_t firstIndexOfLastRow = rawIndex - Height;
-
-	// The vertices of the last row use normals of the triangles with shifting offsets.
-	size_t offsetForLastRow = 1;
-
-	// // The vertices of the first column use normals of the triangles which are multiples of the heightmap's height.
-	size_t multipleForFirstColumn = Height * 2;
-
-	for (size_t i = 0; i < rawIndex; ++i)
+	for (int row = 0; row < Height; ++row)
 	{
-		// These vertices use normals of 1 triangle:
-		if (              0 == i            // the first vertex
-			|| rawIndex - 1 == i            // the last vertex
-			|| lastIndexOfFirstRow == i     // the last vertex of the first row
-			|| firstIndexOfLastRow == i)    // the first vertex of the last row
+		for (int col = 0; col < Width; ++col)
 		{
-			normals.push_back(normalsPerTriangle[i]);
-		}
-		else if (   i < Height 
-			     && 0 == i % 2)    // vertices of the top row (with the even indices) use normals of 3 triangles
-		{
-			glm::vec3 normal1 = normalsPerTriangle[i];
-			glm::vec3 normal2 = normalsPerTriangle[i - 1];
-			glm::vec3 normal3 = normalsPerTriangle[i - 2];
-
-			normals.push_back((normal1 + normal2 + normal3) / 3.0f);
-		}
-		else if (i > (rawIndex - Height))    // vertices of the bottom row use normals of 3 triangles
-		{
-			glm::vec3 normal1 = normalsPerTriangle[i + offsetForLastRow];
-			glm::vec3 normal2 = normalsPerTriangle[i + offsetForLastRow + 1];
-			glm::vec3 normal3 = normalsPerTriangle[i + offsetForLastRow + 2];
-
-			normals.push_back((normal1 + normal2 + normal3) / 3.0f);
-
-			++offsetForLastRow;
-		}
-		// Vertices of the first column (except those from the top and the bottom rows) use normals of 3 triangles.
-		// It's convenient to make the first such vertex a special case.
-		else if (1 == i)
-		{
-			glm::vec3 normal1 = normalsPerTriangle[0];
-			glm::vec3 normal2 = normalsPerTriangle[1];
-			glm::vec3 normal3 = normalsPerTriangle[Height * 2];
-
-			normals.push_back((normal1 + normal2 + normal3) / 3.0f);
-		}
-		else if (0 == i % Height)    // vertices of the first column (except those from the top and the bottom rows) use normals of 3 triangles
-		{
-			// TODO: probably ignore the vertex 'numbers'; use the triangle indices
-			
-			glm::vec3 normal1 = normalsPerTriangle[multipleForFirstColumn];
-			glm::vec3 normal2 = normalsPerTriangle[multipleForFirstColumn + 1];
-			glm::vec3 normal3 = normalsPerTriangle[multipleForFirstColumn + Height];
-
-			normals.push_back((normal1 + normal2 + normal3) / 3.0f);
-
-			multipleForFirstColumn += Height;
-		}
-		else if (Height * rowNumber - 1 == i)    // vertices of the last column (except those from the top and the bottom rows) use normals of 3 triangles
-		{
-			;
-			
-			lastIndexInRow = Height * ++rowNumber - 1;
-		}
-		else    // other vertices use normals of 6 triangles
-		{
-			;
+			normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));
 		}
 	}
+#else
+	// Calculate normals.
+	// NOTE: we should use the number of "raw" indices, as the index buffer contains duplicates.
+	//
+	// Code from "3D Terrain Programming" by Trent Polack, Andre LaMothe (demo 8_2).
+	normals.reserve(rawIndex);
+
+	for (int row = 0; row < Height; ++row)
+	{
+		for (int col = 0; col < Width; ++col)
+		{
+			glm::vec3 *pVertex = &vertices[row * Width + col];
+
+			glm::vec3 normal(0.0f, 1.0f, 0.0f);
+
+			// above
+			if (0 != row)
+			{
+				if (0 != col)
+				{
+					normal.x += -pVertex[-Width - 1][1];
+					normal.z += -pVertex[-Width - 1][1];
+				}
+				else
+				{
+					normal.x += -pVertex[-Width][1];
+					normal.z += -pVertex[-Width][1];
+				}
+
+				normal.x += -pVertex[-Width][1] * 2.0f;
+
+				if ((Width - 1) != col)
+				{
+					normal.x += -pVertex[-Width + 1][1];
+					normal.z += pVertex[-Width + 1][1];
+				}
+				else
+				{
+					normal.x += -pVertex[-Width][1];
+					normal.z += pVertex[-Width][1];
+				}
+			}
+			else
+			{
+				normal.x += -pVertex[0][1];
+				normal.x += -pVertex[0][1] * 2.0f;
+				normal.x += -pVertex[0][1];
+
+				normal.z += -pVertex[0][1];
+				normal.z += pVertex[0][1];
+			}
+
+			// Current line.
+			if (0 != col)
+			{
+				normal.z += -pVertex[-1][1] * 2.0f;
+			}
+			else
+			{
+				normal.z += -pVertex[0][1] * 2.0f;
+			}
+
+			if (col != (Width - 1))
+			{
+				normal.z += pVertex[1][1] * 2.0f;
+			}
+			else
+			{
+				normal.z += pVertex[0][1] * 2.0f;
+			}
+
+			// Below.
+			if ((Width - 1) != row)
+			{
+				if (0 != col)
+				{
+					normal.x += pVertex[Width - 1][1];
+					normal.z += -pVertex[Width - 1][1];
+				}
+				else
+				{
+					normal.x += pVertex[Width][1];
+					normal.z += -pVertex[Width][1];
+				}
+
+				normal.x += pVertex[Width][1] * 2.0f;
+
+				if ((Width - 1) != col)
+				{
+					normal.x += pVertex[Width + 1][1];
+					normal.z += pVertex[Width + 1][1];
+				}
+				else
+				{
+					normal.x += pVertex[Width][1];
+					normal.z += pVertex[Width][1];
+				}
+			}
+			else
+			{
+				normal.x += pVertex[0][1];
+				normal.x += pVertex[0][1] * 2.0f;
+				normal.x += pVertex[0][1];
+
+				normal.z += -pVertex[0][1];
+				normal.z += pVertex[0][1];
+			}
+
+			// Normalize the normal.
+			float tmpf = 1.0f / (float)sqrt(normal.x * normal.x + normal.z * normal.z + 1.0f);
+			normal.x *= tmpf;
+			normal.y *= tmpf;
+			normal.z *= tmpf;
+
+			normals.push_back(normal);
+		}
+	}
+#endif
 
 	return true;
 }
 
-void Terrain::generateTextureData(const std::vector<GLfloat>& vertices)
+void Terrain::generateTextureData(const std::vector<glm::vec3>& vertices)
 {
 	// Required because the TiledTexture constructor calls glUniform*().
 	glUseProgram(m_spProgram->getProgram());
@@ -459,9 +473,8 @@ void Terrain::updateViewMatrices(const std::unique_ptr<Camera>& spCamera) const
 
 	glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(spCamera->getModelViewProjectionMatrix()));
 
-	// Don't remove.
-#if 0
-	glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(spCamera->getProjectionMatrix()));
+#if 1
+	//glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(spCamera->getProjectionMatrix()));
 
 	glm::mat4 modelView = spCamera->getModelViewMatrix();
 
@@ -470,7 +483,9 @@ void Terrain::updateViewMatrices(const std::unique_ptr<Camera>& spCamera) const
 
 	//Normal = mat3(transpose(inverse(model))) * normal;
 
-	glUniformMatrix3fv(2, 1, GL_FALSE, glm::value_ptr(normal));
+	glUniformMatrix3fv(1, 1, GL_FALSE, glm::value_ptr(normal));
+
+	glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(modelView));
 #endif
 
 	glUseProgram(0);

@@ -12,10 +12,12 @@ layout(location = 4) in float secondTexturePresence;
 layout(location = 5) in float thirdTexturePresence;
 
 layout (location = 0) uniform mat4 MVP;
-//layout (location = 1) uniform mat4 Projection;
-//layout (location = 2) uniform mat3 Normal;
+layout (location = 1) uniform mat3 Normal;
+layout (location = 2) uniform mat4 ModelView;
 
 out vec2 texCoord2;
+out vec3 vPos;
+out vec3 vNormal;
 
 // Presence of the textures (in percent).
 out float firstTexturePresence2;
@@ -30,6 +32,10 @@ out VS_OUT {
 
 void main(void) 
 {
+	vNormal = normalize(Normal * normal);
+
+	vPos = vec3(ModelView * vec4(position, 1.0));
+
 	texCoord2 = texCoord;
 
 	firstTexturePresence2  = firstTexturePresence;

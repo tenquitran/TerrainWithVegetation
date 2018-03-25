@@ -14,7 +14,7 @@ GLint TiledTexture::m_nextSampler = 0;
 
 
 TiledTexture::TiledTexture(const GLuint& program, const std::string& fileName, const std::string& textureSamplerName,
-	int surfaceWidth, int surfaceHeight, const std::vector<GLfloat>& vertices, const TexturePresence& texturePresence)
+	int surfaceWidth, int surfaceHeight, const std::vector<glm::vec3>& vertices, const TexturePresence& texturePresence)
 	: m_fileName(fileName), m_texture{}, m_uTextureSampler(-1), m_currentSampler(m_nextSampler++),
 	  m_textureCoordBuffer{}, m_textureWidth{}, m_textureHeight{}, 
 	  m_surfaceWidth(surfaceWidth), m_surfaceHeight(surfaceHeight), m_texturePresence(texturePresence)
@@ -40,7 +40,7 @@ TiledTexture::~TiledTexture()
 	}
 }
 
-bool TiledTexture::initialize(const GLuint& program, const std::string& textureSamplerName, const std::vector<GLfloat>& vertices)
+bool TiledTexture::initialize(const GLuint& program, const std::string& textureSamplerName, const std::vector<glm::vec3>& vertices)
 {
 	if (m_fileName.empty())
 	{
@@ -103,19 +103,21 @@ bool TiledTexture::initialize(const GLuint& program, const std::string& textureS
 
 	std::vector<glm::vec2> textureCoords;
 
-	const size_t VERTEX_COUNT = vertices.size();
+	const size_t VertexCount = vertices.size();
 
-	textureCoords.resize(VERTEX_COUNT / 3);    // vertex coordinates collection contains 3 coordinates per vertex
+	textureCoords.resize(VertexCount);
 
 	size_t currentTexCoord = {};
 
 	// Number of tiles to use for each dimension.
 	const GLfloat TILE_COUNT = 20.0f;
 
-	for (size_t i = 0; i < VERTEX_COUNT; i += 3)
+	for (size_t i = 0; i < VertexCount; ++i)
 	{
-		textureCoords[currentTexCoord++] = glm::vec2(vertices[i] / (m_surfaceWidth / TILE_COUNT), 
-			vertices[i + 2] / (m_surfaceHeight / TILE_COUNT));
+		glm::vec3 vertex = vertices[i];
+
+		textureCoords[currentTexCoord++] = glm::vec2(vertex.x / (m_surfaceWidth / TILE_COUNT),
+			vertex.z / (m_surfaceHeight / TILE_COUNT));
 	}
 
 	// Create and fill texture coordinates buffer.

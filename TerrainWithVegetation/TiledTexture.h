@@ -11,11 +11,11 @@ namespace TerrainWithVegetation
 		//             textureSamplerName - name of the texture sampler uniform in the fragment shader;
 		//             surfaceWidth  - width of the surface to texture;
 		//             surfaceHeight - height of the surface to texture;
-		//             vertices - vertex coordinates of the surface;
+		//             vertices - vector coordinates of the surface;
 		//             texturePresence - data to calculate the texture presence depending on terrain height.
 		// Throws: std::bad_alloc
 		TiledTexture(const GLuint& program, const std::string& fileName, const std::string& textureSamplerName,
-			int surfaceWidth, int surfaceHeight, const std::vector<GLfloat>& vertices, const TexturePresence& texturePresence);
+			int surfaceWidth, int surfaceHeight, const std::vector<glm::vec3>& vertices, const TexturePresence& texturePresence);
 
 		virtual ~TiledTexture();
 
@@ -29,9 +29,9 @@ namespace TerrainWithVegetation
 
 		// Parameters: program - GLSL program object;
 		//             textureSamplerName - name of the texture sampler uniform in the fragment shader;
-		//             vertices - vertex coordinates of the surface.
+		//             vertices - vector coordinates of the surface.
 		// Throws: std::bad_alloc
-		bool initialize(const GLuint& program, const std::string& textureSamplerName, const std::vector<GLfloat>& vertices);
+		bool initialize(const GLuint& program, const std::string& textureSamplerName, const std::vector<glm::vec3>& vertices);
 
 		// TODO: temp
 	public:

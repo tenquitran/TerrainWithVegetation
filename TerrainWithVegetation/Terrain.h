@@ -26,11 +26,11 @@ namespace TerrainWithVegetation
 		//             normals - vertex normals.
 		// Returns: true on success, false otherwise.
 		// Throws: std::bad_alloc
-		bool generateTerrainData(std::vector<GLfloat>& vertices, std::vector<GLuint>& indices, std::vector<glm::vec3>& normals);
+		bool generateTerrainData(std::vector<glm::vec3>& vertices, std::vector<GLuint>& indices, std::vector<glm::vec3>& normals);
 
 		// Initialize texture data for the terrain.
 		// Parameters: vertices - vertex coordinates.
-		void generateTextureData(const std::vector<GLfloat>& vertices);
+		void generateTextureData(const std::vector<glm::vec3>& vertices);
 
 	private:
 		// Terrain heightmap.
