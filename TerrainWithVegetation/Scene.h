@@ -26,15 +26,9 @@ namespace TerrainWithVegetation
 		// Camera control.
 		//////////////////////////////////////////////////////////////////////////
 
-		void translateCameraX(GLfloat diff);
-		void translateCameraY(GLfloat diff);
-		void translateCameraZ(GLfloat diff);
+        void translateCamera(const glm::vec3& diff);
 
-		void rotateCameraX(GLfloat angleDegrees);
-		void rotateCameraY(GLfloat angleDegrees);
-		void rotateCameraZ(GLfloat angleDegrees);
-
-		void rotateCameraXY(GLfloat xAngleDegrees, GLfloat yAngleDegrees);
+        void rotateCamera(const glm::vec3& degrees);
 
 		GLfloat getCameraScale() const;
 

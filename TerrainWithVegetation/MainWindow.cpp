@@ -56,31 +56,31 @@ LRESULT MainWindow::windowProcDerived(HWND hWnd, UINT message, WPARAM wParam, LP
 			// Translate the camera.
 			//////////////////////////////////////////////////////////////////////////
 			case 0x57:    // W key
-				m_scene.translateCameraY(0.1f);
+                m_scene.translateCamera({ 0.0f, 0.1f, 0.0f });
 				break;
 			case 0x53:    // S key
-				m_scene.translateCameraY(-0.1f);
+                m_scene.translateCamera({ 0.0f, -0.1f, 0.0f });
 				break;
 			case 0x41:    // A key
-				m_scene.translateCameraX(-0.1f);
+                m_scene.translateCamera({ 0.1f, 0.0f, 0.0f });
 				break;
 			case 0x44:    // D key
-				m_scene.translateCameraX(0.1f);
+                m_scene.translateCamera({ -0.1f, 0.0f, 0.0f });
 				break;
 			//////////////////////////////////////////////////////////////////////////
 			// Rotate the camera.
 			//////////////////////////////////////////////////////////////////////////
 			case VK_UP:
-				m_scene.rotateCameraX(2.0f);
+                m_scene.rotateCamera({ 2.0f, 0.0f, 0.0f });
 				break;
 			case VK_DOWN:
-				m_scene.rotateCameraX(-2.0f);
+                m_scene.rotateCamera({ -2.0f, 0.0f, 0.0f });
 				break;
 			case VK_LEFT:
-				m_scene.rotateCameraY(-2.0f);
+                m_scene.rotateCamera({ 0.0f, -2.0f, 0.0f });
 				break;
 			case VK_RIGHT:
-				m_scene.rotateCameraY(2.0f);
+                m_scene.rotateCamera({ 0.0f, 2.0f, 0.0f });
 				break;
 			//////////////////////////////////////////////////////////////////////////
 			// Zoom in/out for the camera.

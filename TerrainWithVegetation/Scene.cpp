@@ -38,9 +38,7 @@ bool Scene::initialize(const OpenGLInfo& openGlInfo)
 
 #if 1
 	// Get our future terrain in focus.
-	m_spCamera->translateX(-0.8f);
-	m_spCamera->translateY(-0.8f);
-	m_spCamera->translateZ(-1.5f);
+    m_spCamera->translate({ -0.8f, -0.8f, -1.5f });
 #endif
 
 	// Initialize the program wrapper.
@@ -85,51 +83,16 @@ void Scene::updateViewMatrices() const
 	m_terrain.updateViewMatrices(m_spCamera);
 }
 
-void Scene::translateCameraX(GLfloat diff)
+void Scene::translateCamera(const glm::vec3& diff)
 {
-	m_spCamera->translateX(diff);
+	m_spCamera->translate(diff);
 
 	updateViewMatrices();
 }
 
-void Scene::translateCameraY(GLfloat diff)
+void Scene::rotateCamera(const glm::vec3& degrees)
 {
-	m_spCamera->translateY(diff);
-
-	updateViewMatrices();
-}
-
-void Scene::translateCameraZ(GLfloat diff)
-{
-	m_spCamera->translateZ(diff);
-
-	updateViewMatrices();
-}
-
-void Scene::rotateCameraX(GLfloat angleDegrees)
-{
-	m_spCamera->rotateX(angleDegrees);
-
-	updateViewMatrices();
-}
-
-void Scene::rotateCameraY(GLfloat angleDegrees)
-{
-	m_spCamera->rotateY(angleDegrees);
-
-	updateViewMatrices();
-}
-
-void Scene::rotateCameraZ(GLfloat angleDegrees)
-{
-	m_spCamera->rotateZ(angleDegrees);
-
-	updateViewMatrices();
-}
-
-void Scene::rotateCameraXY(GLfloat xAngleDegrees, GLfloat yAngleDegrees)
-{
-	m_spCamera->rotateXY(xAngleDegrees, yAngleDegrees);
+	m_spCamera->rotate(degrees);
 
 	updateViewMatrices();
 }
