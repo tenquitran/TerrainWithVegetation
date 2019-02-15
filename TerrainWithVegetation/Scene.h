@@ -12,9 +12,8 @@ namespace TerrainWithVegetation
 
 		virtual ~Scene();
 
-		// Parameters: aspectRatio - aspect ratio of the window's client area;
-		//             openGlInfo - OpenGL settings.
-		bool initialize(GLfloat aspectRatio, const CommonLibOgl::OpenGLInfo& openGlInfo);
+		// Parameters: openGlInfo - OpenGL settings.
+		bool initialize(const CommonLibOgl::OpenGLInfo& openGlInfo);
 
 		// Update Model-View-Projection (MVP) and other matrices in the GLSL program.
 		void updateViewMatrices() const;

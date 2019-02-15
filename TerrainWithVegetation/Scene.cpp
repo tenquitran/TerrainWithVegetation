@@ -18,7 +18,7 @@ Scene::~Scene()
 {
 }
 
-bool Scene::initialize(GLfloat aspectRatio, const OpenGLInfo& openGlInfo)
+bool Scene::initialize(const OpenGLInfo& openGlInfo)
 {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
@@ -31,7 +31,9 @@ bool Scene::initialize(GLfloat aspectRatio, const OpenGLInfo& openGlInfo)
 	const GLfloat CameraScaleFactor = 0.02f;
 	//const GLfloat CameraScaleFactor = 1.0f;
 
-	m_spCamera = std::make_unique<Camera>(aspectRatio, CameraScaleFactor,
+    glm::vec3 cameraPosition = {0.0f, 0.0f, -5.0f};
+
+    m_spCamera = std::make_unique<Camera>(cameraPosition, CameraScaleFactor,
 		openGlInfo.FieldOfView, openGlInfo.FrustumNear, openGlInfo.FrustumFar);
 
 #if 1

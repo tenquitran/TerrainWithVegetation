@@ -107,9 +107,7 @@ bool MainWindow::initialize()
 		assert(false); return false;
 	}
 
-	GLfloat aspectRatio = m_wndInfo.m_clientWidth / (GLfloat)m_wndInfo.m_clientHeight;
-
-	return m_scene.initialize(aspectRatio, m_openGlInfo);
+	return m_scene.initialize(m_openGlInfo);
 }
 
 void MainWindow::onResizeDerived(int clientWidth, int clientHeight)
